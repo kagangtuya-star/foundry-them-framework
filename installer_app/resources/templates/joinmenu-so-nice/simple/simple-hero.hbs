@@ -1,0 +1,15 @@
+<section class="simple-hero">
+  <div class="simple-hero__image" {{#if simpleTheme.heroImage}}style="background-image: url('{{simpleTheme.heroImage}}');"{{/if}}></div>
+  {{#if simpleTheme.heroVideo}}
+    <video
+      class="simple-hero__video"
+      autoplay
+      loop
+      muted
+      playsinline
+      src="{{simpleTheme.heroVideo}}"
+      type="video/webm">
+    </video>
+  {{/if}}
+  <div class="simple-hero__vignette"></div>
+</section>

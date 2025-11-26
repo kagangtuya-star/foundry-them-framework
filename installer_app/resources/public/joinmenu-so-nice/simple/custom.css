@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Spectral:wght@400;600&display=swap");
+
+/*
+------------------------------------------
+Prettier login screen by github.com/dandln
+adjusted for Foundry v12
+based on code by u/bass-blowfish
+------------------------------------------
+*/
+/* CONFIGURATION AREA */
+body.auth,
+#watermark {
+  /* Replace "url(data:image...)" with "url("PATH_TO YOUR_IMAGE")".
+     Keep as is if you don't want to add images. */
+  --login-world-logo: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=);
+  --login-footer-logo: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=);
+
+  /* Change this to adjust the size of the footer logo */
+  --login-footer-logo-height: 25px;
+
+  /* Here you can change the base and hover color for the buttons
+     on the login form. */
+  --login-button-color: rgb(150, 12, 16);
+  --login-button-color-hover: rgb(228, 9, 19);
+
+  /* Change to "inherit" if you want to keep the text title.
+     You then also need to remove the "World Logo" declaration. */
+  --login-show-text-title: none;
+}
+
+/* World Logo - REMOVE THIS IF YOU WANT A TEXT TITLE */
+body.auth #main-header {
+  background: var(--login-world-logo);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  height: 120px !important;
+  border: none;
+  box-shadow: none;
+}
+
+/* Footer Logo */
+body.auth #watermark::before {
+  display: none;
+  content: " ";
+  background: var(--login-footer-logo);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: var(--maxWidth);
+  height: var(--login-footer-logo-height);
+  margin-top: calc(calc(var(--login-footer-logo-height) * -1) + 25px);
+  margin-bottom: 5px;
+}
+#software-version {
+  display: none;
+}
+
+body.join #join-game {
+  grid-template-columns: 1fr !important;
+}
+
+World title visibility */
+
+/* body.auth #main-header h1 {
+  display: var(--login-show-text-title);
+}
+
+/* Hide form dividers */
+#join-game .divider {
+  display: none;
+}
+
+/* Login mask width and position */
+#join-game {
+  width: 400px !important;
+  top: calc(50% - 300px) !important;
+}
+
+/* Restyle inputs */
+#join-game input,
+#join-game select,
+#join-game button {
+  min-height: 40px;
+  padding: 10px !important;
+  border: none !important;
+  font-size: 15px;
+  width: 100%;
+}
+
+/* Restyle buttons */
+#join-game button {
+  background: var(--login-button-color);
+  border: none;
+  color: #fff;
+  margin-bottom: 0px !important;
+}
+
+#join-game button:hover {
+  background: var(--login-button-color-hover);
+  box-shadow: none;
+}
+
+/* Change login button icon */
+#join-game button[name="join"] i.fas.fa-check {
+  display: none;
+}
+
+#join-game button[name="join"]:after {
+  content: "\2192";
+  padding-left: 5px;
+}
+
+/* Add padding to icon on return to setup button */
+#join-game-setup .form-footer .fas.fa-lock {
+  padding-right: 5px;
+}
+
+.application {
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+
+    overflow: hidden;
+    /* background: var(--background); */
+    font-size: var(--font-size-14);
+    color: var(--color-text-primary);
+    /* border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 0 10px #000; */
+    opacity: 0.6;
+      /* 设置透明度为20% */
+    background-color: rgba(0, 0, 0, 0.15);
+      /* 设置背景透明度为20% */
+  }
+
+.application:hover {
+  opacity: 0.9;
+  background-color: rgba(0, 0, 0, 0.2);
+    /* 鼠标悬浮时设置透明度为100% */
+  }
+
+.bg3-input::placeholder {
+  color: rgba(200, 170, 110, 0.4) !important;
+  font-style: italic;
+}
+
+.bg3-btn:hover {
+  background: linear-gradient(180deg, #534231 0%, #2b2119 100%) !important;
+  border-color: #ffeebb !important;
+  text-shadow: 0 0 8px #c8aa6e !important;
+  box-shadow: inset 0 0 0 1px rgba(200, 170, 110, 0.3), 0 0 15px rgba(200, 170, 110, 0.4) !important;
+}
+
+select.bg3-input option {
+  background-color: #1a1510;
+  color: #eaddcf;
+}
+
+body.join-theme-simple {
+  background-color: #050505;
+  color: #eaddcf;
+  min-height: 100vh;
+  font-family: "Spectral", serif;
+}
+
+body.join-theme-simple-loading #join-game {
+  opacity: 0;
+}
+
+body.join-theme-simple-ready #join-game {
+  opacity: 1;
+  transition: opacity 0.2s ease-in;
+}
+
+.simple-hero {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #000;
+}
+
+.simple-hero__image,
+.simple-hero__video,
+.simple-hero__vignette {
+  position: absolute;
+  inset: 0;
+}
+
+.simple-hero__image {
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(15%) contrast(115%) brightness(0.6);
+}
+
+.simple-hero__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(30%) contrast(120%) brightness(0.65);
+}
+
+.simple-hero__vignette {
+  background: radial-gradient(circle, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.85) 100%);
+  pointer-events: none;
+}

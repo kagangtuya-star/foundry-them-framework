@@ -1,0 +1,76 @@
+<form class="application standard-form" autocomplete="off" style="
+    background: rgba(22, 19, 16, 0.95);
+    border: 2px solid #8a734b;
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.9);
+    padding: 2rem;
+    max-width: 450px;
+    margin: 0 auto;
+    font-family: 'Spectral', serif;
+    color: #eaddcf;
+    clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+    position: relative;
+">
+    <!-- 金色角落装饰 (模拟伪元素) -->
+    <div style="position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; border: 1px solid rgba(200, 170, 110, 0.3); pointer-events: none; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);"></div>
+
+    <!-- 标题 -->
+    <h2 style="
+        font-family: 'Cinzel Decorative', serif;
+        font-size: 1.8rem;
+        text-align: center;
+        color: #c8aa6e;
+        border: none;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 2px 4px #000;
+    ">
+        {{ localize "JOIN.HeaderJoin" }}
+        <!-- 标题下方的金色渐变线 -->
+        <div style="width: 80%; height: 2px; background: linear-gradient(90deg, transparent, #c8aa6e, transparent); margin: 8px auto 0;"></div>
+    </h2>
+
+    <!-- 用户选择 -->
+    <div class="form-group" style="display: flex; align-items: center; border-bottom: 1px solid #5e4b35; padding: 0.5rem; margin-bottom: 1rem; background: rgba(0,0,0,0.2);">
+        <label class="icon" data-tooltip="{{ localize 'JOIN.SelectUser' }}" style="flex: 0 0 40px; text-align: center; color: #c8aa6e; font-size: 1.2rem;">
+            <i class="fas fa-user"></i>
+        </label>
+        <div class="form-fields" style="flex: 1;">
+            <select name="userid" class="bg3-input" style="width: 100%; background: transparent; border: none; color: #eaddcf; font-family: 'Spectral', serif; font-size: 1.1rem; outline: none;">
+                <option value=""></option>
+                {{#each users}}
+                    <option value="{{this.id}}" {{#if this.active}}disabled{{/if}}>{{this.name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <!-- 密码输入 -->
+    <div class="form-group" style="display: flex; align-items: center; border-bottom: 1px solid #5e4b35; padding: 0.5rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2);">
+        <label class="icon" data-tooltip="{{ localize 'JOIN.UserKey' }}" style="flex: 0 0 40px; text-align: center; color: #c8aa6e; font-size: 1.2rem;">
+            <i class="fas fa-key"></i>
+        </label>
+        <div class="form-fields" style="flex: 1;">
+            <input type="password" name="password" placeholder="{{ localize "USERS.AccessKey" }}" value="" autocomplete="off" class="bg3-input" style="width: 100%; background: transparent; border: none; color: #eaddcf; font-family: 'Spectral', serif; font-size: 1.1rem; outline: none;">
+        </div>
+    </div>
+
+    <!-- 底部按钮 -->
+    <footer class="form-footer">
+        <button type="submit" name="join" class="bg3-btn" style="
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(180deg, #3d3024 0%, #1f1812 100%);
+            border: 1px solid #8a734b;
+            color: #c8aa6e;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        ">
+            <i class="fas fa-check" style="margin-right: 8px;"></i>
+            <label>{{ localize "JOIN.HeaderJoin" }}</label>
+        </button>
+    </footer>
+</form>
