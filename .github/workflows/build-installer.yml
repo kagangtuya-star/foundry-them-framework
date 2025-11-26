@@ -21,6 +21,10 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install UPX
+        shell: cmd
+        run: choco install upx --no-progress
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -35,9 +39,32 @@ jobs:
             --noconfirm ^
             --noconsole ^
             --clean ^
+            --upx-dir="C:\ProgramData\chocolatey\bin" ^
+            --upx-exclude=vcruntime140.dll ^
+            --upx-exclude=python3.dll ^
+            --exclude-module tkinter ^
+            --exclude-module matplotlib ^
+            --exclude-module notebook ^
+            --exclude-module scipy ^
             --add-data "installer_app/resources;installer_app/resources" ^
             --collect-submodules PyQt6
           dir dist
+
+      - name: Cleanup dist folder
+        shell: pwsh
+        run: |
+          $DistPath = "dist/FVTT-JoinTheme-Installer/_internal"
+          
+          Remove-Item -Path "$DistPath/opengl32sw.dll" -ErrorAction SilentlyContinue
+          
+          Get-ChildItem -Path "$DistPath" -Filter "translations" -Recurse -Directory | Remove-Item -Recurse -Force
+        
+          $ImageFormats = Get-ChildItem -Path "$DistPath" -Filter "imageformats" -Recurse -Directory
+          if ($ImageFormats) {
+              Get-ChildItem -Path $ImageFormats.FullName | Where-Object { $_.Name -notmatch "qjpeg|qgif|qico" } | Remove-Item -Force
+          }
+          
+          Write-Host "Cleanup finished."
 
       - name: List dist folder
         if: always()
