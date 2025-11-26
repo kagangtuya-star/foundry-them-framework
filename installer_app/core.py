@@ -66,7 +66,7 @@ MARKER_NAME = ".join-theme-framework.json"
 def load_tool_config() -> Dict[str, str]:
     default = {
         "version": "1.0.0",
-        "default_themes": ["tidy", "xc", "cultistcard", "simple"],
+        "default_themes": ["simple"],
         "last_update": datetime.utcnow().isoformat() + "Z",
         "recent_roots": []
     }
