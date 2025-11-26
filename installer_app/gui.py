@@ -79,6 +79,9 @@ class ThemeInstallerWindow(QtWidgets.QMainWindow):
         video_btn = QtWidgets.QPushButton("附加背景视频")
         video_btn.clicked.connect(self.attach_background_video)
         btn_row.addWidget(video_btn)
+        remove_video_btn = QtWidgets.QPushButton("移除背景视频")
+        remove_video_btn.clicked.connect(self.remove_background_video)
+        btn_row.addWidget(remove_video_btn)
         remove_btn = QtWidgets.QPushButton("删除主题")
         remove_btn.clicked.connect(self.remove_theme)
         btn_row.addWidget(remove_btn)
@@ -288,6 +291,28 @@ class ThemeInstallerWindow(QtWidgets.QMainWindow):
         except Exception as exc:
             QtWidgets.QMessageBox.critical(self, "错误", str(exc))
             self.log(f"背景视频设置失败: {exc}")
+
+    def remove_background_video(self):
+        root = self._require_root()
+        if not root:
+            return
+        self.add_recent_path(str(root))
+        item = self.theme_list.currentItem()
+        if not item:
+            QtWidgets.QMessageBox.information(self, "提示", "请先选择一个主题。")
+            return
+        theme_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        if QtWidgets.QMessageBox.question(self, "确认", f"是否移除 {theme_id} 的背景视频？") != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+        try:
+            dest = core.remove_theme_background_video(root, theme_id)
+            self.log(f"已移除 {theme_id} 的背景视频: {dest}")
+            QtWidgets.QMessageBox.information(self, "完成", f"已删除 {dest}")
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.information(self, "提示", "该主题未附加背景视频。")
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(self, "错误", str(exc))
+            self.log(f"背景视频移除失败: {exc}")
 
     def remove_theme(self):
         root = self._require_root()

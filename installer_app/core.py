@@ -220,6 +220,17 @@ def set_theme_background_video(root: Path, theme_id: str, source_video: Path) ->
     return dest_path
 
 
+def remove_theme_background_video(root: Path, theme_id: str) -> Path:
+    dest_dir = root / "public/joinmenu-so-nice" / theme_id
+    if not dest_dir.exists():
+        raise RuntimeError("未找到该主题的 public 目录。请先安装该主题。")
+    dest_path = dest_dir / "background.webm"
+    if not dest_path.exists():
+        raise FileNotFoundError("该主题尚未附加背景视频。")
+    dest_path.unlink()
+    return dest_path
+
+
 def discover_themes(root: Path) -> Dict[str, str]:
     foundry_path = root / "public/scripts/foundry.mjs"
     if not foundry_path.exists():

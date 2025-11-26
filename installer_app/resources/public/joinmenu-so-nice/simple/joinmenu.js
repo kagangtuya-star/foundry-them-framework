@@ -1,17 +1,21 @@
-class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+class willowShore extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
   static #customVideoCache;
+  
   constructor(options) {
-    simple.#injectCSS();
-    document.body.classList.add("join-theme-simple");
+    willowShore.#injectCSS();
+    document.body.classList.add("join-theme-willow-shore");
     super(options);
     game.users.apps.push(this);
   }
 
   static #injectCSS() {
-    const id = "simple-join-theme-style";
+    const id = "willow-shore-join-theme-style";
     if ( document.getElementById(id) ) return;
-    const href = "joinmenu-so-nice/simple/custom.css";
-    const preloadId = "simple-join-theme-preload";
+    
+    // 路径指向：modules/joinmenu-so-nice/willow-shore/custom.css
+    const href = "modules/joinmenu-so-nice/willow-shore/custom.css";
+    
+    const preloadId = "willow-shore-join-theme-preload";
     if ( !document.getElementById(preloadId) ) {
       const preload = document.createElement("link");
       preload.id = preloadId;
@@ -24,10 +28,10 @@ class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry
     link.id = id;
     link.rel = "stylesheet";
     link.href = href;
-    document.body.classList.add("join-theme-simple-loading");
+    document.body.classList.add("join-theme-willow-shore-loading");
     link.addEventListener("load", () => {
-      document.body.classList.remove("join-theme-simple-loading");
-      document.body.classList.add("join-theme-simple-ready");
+      document.body.classList.remove("join-theme-willow-shore-loading");
+      document.body.classList.add("join-theme-willow-shore-ready");
     }, {once: true});
     document.head.appendChild(link);
   }
@@ -43,23 +47,23 @@ class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry
   static PARTS = {
     hero: {
       id: "hero",
-      template: "templates/joinmenu-so-nice/simple/simple-hero.hbs"
+      template: "modules/joinmenu-so-nice/willow-shore/willow-hero.hbs"
     },
     form: {
       id: "form",
-      template: "templates/joinmenu-so-nice/simple/simple-form.hbs",
+      template: "modules/joinmenu-so-nice/willow-shore/willow-form.hbs",
       forms: {
         "#join-game-form": {
-          handler: simple.#onSubmitLoginForm
+          handler: willowShore.#onSubmitLoginForm
         }
       }
     },
     setup: {
       id: "setup",
-      template: "templates/joinmenu-so-nice/simple/simple-setup.hbs",
+      template: "modules/joinmenu-so-nice/willow-shore/willow-setup.hbs",
       forms: {
         "#join-game-setup": {
-          handler: simple.#onSubmitSetupForm
+          handler: willowShore.#onSubmitSetupForm
         }
       }
     }
@@ -69,7 +73,8 @@ class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry
     const stripHTML = foundry?.utils?.stripHTML ?? (s => s);
     const description = game.world?.description ? stripHTML(game.world.description) : "";
     const heroImage = game.world?.background ?? "";
-    const heroVideo = await simple.#resolveHeroVideo(heroImage);
+    const heroVideo = await willowShore.#resolveHeroVideo(heroImage);
+    
     return {
       isAdmin: game.data.isAdmin,
       users: game.users,
@@ -77,9 +82,10 @@ class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry
       passwordString: game.data.passwordString,
       usersCurrent: game.users.filter(u => u.active).length,
       usersMax: game.users.contents.length,
+      // 数据对象名保持 simpleTheme 以方便模板调用，内容定制化
       simpleTheme: {
-        tagline: description.slice(0, 120) || game.world?.title || "冒险从此刻开始",
-        cta: game.world?.subtitle ?? "立即加入",
+        tagline: description.slice(0, 120) || "戴上纸面具，欺瞒林中灵。",
+        cta: game.world?.subtitle ?? "加入祭典",
         heroImage,
         heroVideo
       }
@@ -152,23 +158,25 @@ class simple extends foundry.applications.api.HandlebarsApplicationMixin(foundry
   }
 
   async close(options = {}) {
-    document.body.classList.remove("join-theme-simple", "join-theme-simple-ready", "join-theme-simple-loading");
+    document.body.classList.remove("join-theme-willow-shore", "join-theme-willow-shore-ready", "join-theme-willow-shore-loading");
     return super.close(options);
   }
 
   static async #resolveHeroVideo(heroImage) {
     const media = heroImage?.trim?.() ?? "";
     if ( media && /\.webm(\?.*)?$/i.test(media) ) return media;
-    if ( typeof simple.#customVideoCache === "string" ) return simple.#customVideoCache;
+    if ( typeof willowShore.#customVideoCache === "string" ) return willowShore.#customVideoCache;
     try {
-      const response = await fetch("joinmenu-so-nice/simple/background.webm", {method: "HEAD"});
-      simple.#customVideoCache = response.ok ? "joinmenu-so-nice/simple/background.webm" : "";
+      // 路径指向：modules/joinmenu-so-nice/willow-shore/background.webm
+      const videoPath = "modules/joinmenu-so-nice/willow-shore/background.webm";
+      const response = await fetch(videoPath, {method: "HEAD"});
+      willowShore.#customVideoCache = response.ok ? videoPath : "";
     }
     catch {
-      simple.#customVideoCache = "";
+      willowShore.#customVideoCache = "";
     }
-    return simple.#customVideoCache;
+    return willowShore.#customVideoCache;
   }
 }
 
-return simple;
+return willowShore;

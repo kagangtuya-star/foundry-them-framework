@@ -121,6 +121,7 @@ return mytheme;
    - **导出主题**：基于已安装主题生成 ZIP，可供分发。
    - **打包主题目录**：从任意本地目录打包符合规范的 ZIP。
    - **附加背景视频**：选中主题后点击“附加背景视频”，挑选 `.webm` 文件，安装器会复制到 `public/joinmenu-so-nice/<id>/background.webm`，Simple 主题会自动使用。
+   - **移除背景视频**：若需回滚，点击“移除背景视频”即可删除 `background.webm`，恢复到世界或主题默认的背景逻辑。
    - **恢复备份**：将 `foundry.mjs`、`constants.mjs` 回滚至 `.backup`。
 
 > `installer_app/resources/` 中存放 Simple 主题的模板与样式，若你更新 Simple，请同步这里，保证一键安装能分发最新版本。
