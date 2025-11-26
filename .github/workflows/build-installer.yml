@@ -37,9 +37,14 @@ jobs:
             --clean ^
             --add-data "installer_app/resources;installer_app/resources" ^
             --collect-submodules PyQt6
+          dir dist
+
+      - name: List dist folder
+        if: always()
+        run: Get-ChildItem -Recurse dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: FVTT-JoinTheme-Installer
-          path: dist/FVTT-JoinTheme-Installer.exe
+          path: dist/FVTT-JoinTheme-Installer
