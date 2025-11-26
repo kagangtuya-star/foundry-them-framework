@@ -1,16 +1,13 @@
-name: build-installer
-
+name: Publish Release Asset
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'installer_app/**'
-      - '.github/workflows/build-installer.yml'
-      - 'requirements.txt'
-      - 'pip-install.bat'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
 
 jobs:
-  windows-build:
+  build-and-publish:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -48,7 +45,6 @@ jobs:
             --exclude-module scipy ^
             --add-data "installer_app/resources;installer_app/resources" ^
             --collect-submodules PyQt6
-          dir dist
 
       - name: Cleanup dist folder
         shell: pwsh
@@ -58,20 +54,22 @@ jobs:
           Remove-Item -Path "$DistPath/opengl32sw.dll" -ErrorAction SilentlyContinue
           
           Get-ChildItem -Path "$DistPath" -Filter "translations" -Recurse -Directory | Remove-Item -Recurse -Force
-        
+          
           $ImageFormats = Get-ChildItem -Path "$DistPath" -Filter "imageformats" -Recurse -Directory
           if ($ImageFormats) {
               Get-ChildItem -Path $ImageFormats.FullName | Where-Object { $_.Name -notmatch "qjpeg|qgif|qico" } | Remove-Item -Force
           }
-          
-          Write-Host "Cleanup finished."
 
-      - name: List dist folder
-        if: always()
-        run: Get-ChildItem -Recurse dist
+      - name: Zip the Build
+        shell: pwsh
+        run: |
+          $Version = "${{ github.ref_name }}"
+          $ZipName = "FVTT-JoinTheme-Installer-$Version.zip"
+          Compress-Archive -Path "dist/FVTT-JoinTheme-Installer" -DestinationPath $ZipName
+          echo "ASSET_NAME=$ZipName" >> $env:GITHUB_ENV
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: FVTT-JoinTheme-Installer
-          path: dist/FVTT-JoinTheme-Installer
+          files: ${{ env.ASSET_NAME }}
