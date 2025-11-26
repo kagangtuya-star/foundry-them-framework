@@ -11,7 +11,7 @@ from typing import Dict, Iterable, Optional, Tuple
 
 WORLD_PATTERN = re.compile(r"(const WORLD_JOIN_THEMES = Object\.freeze\()\s*\{([\s\S]*?)\}(\s*\);)", re.MULTILINE)
 SCRIPT_PATTERN = re.compile(r"(const JOIN_THEME_SCRIPTS = Object\.freeze\()\s*\{([\s\S]*?)\}(\s*\);)", re.MULTILINE)
-JOIN_VIEW_PATTERN = re.compile(r"(^\s*(?:async\s+)?#joinView\(\)\s*\{[\s\S]*?^\s*\})", re.MULTILINE)
+JOIN_VIEW_HEADER_PATTERN = re.compile(r"^\s*(?:async\s+)?#joinView\s*\([^)]*\)\s*\{", re.MULTILINE)
 
 JOIN_VIEW_BLOCK = """
   async #joinView() {
@@ -61,6 +61,34 @@ JOIN_VIEW_BLOCK = """
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
 MARKER_NAME = ".join-theme-framework.json"
+
+
+def _normalize_path(path: Path) -> str:
+    return str(path).replace("\\", "/")
+
+
+def _find_target_file(root: Path, rel_path: str, filename: str, preferred_substrings: tuple[str, ...] | None = None) -> Path:
+    candidate = root / rel_path
+    if candidate.exists():
+        return candidate
+    matches = sorted(root.rglob(filename))
+    if not matches:
+        raise RuntimeError(f"未找到 {filename}，请确认 FVTT 目录是否完整。")
+    normalized = [_normalize_path(p) for p in matches]
+    if preferred_substrings:
+        for sub in preferred_substrings:
+            for idx, norm in enumerate(normalized):
+                if sub in norm:
+                    return matches[idx]
+    return matches[0]
+
+
+def find_foundry_file(root: Path) -> Path:
+    return _find_target_file(root, "public/scripts/foundry.mjs", "foundry.mjs", ("public/scripts", "public"))
+
+
+def find_constants_file(root: Path) -> Path:
+    return _find_target_file(root, "common/constants.mjs", "constants.mjs", ("common",))
 
 
 def load_tool_config() -> Dict[str, str]:
@@ -134,13 +162,98 @@ def insert_script_map(content: str, entries: Dict[str, str]) -> str:
     return content[:world_match.end()] + insert + content[world_match.end():]
 
 
+def _find_block_end(content: str, open_index: int) -> int:
+    depth = 0
+    i = open_index
+    string_quote: str | None = None
+    escaped = False
+    pending_template_expr = False
+    template_expr_stack: list[int] = []
+    template_resume_stack: list[str] = []
+
+    while i < len(content):
+        ch = content[i]
+
+        if string_quote:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+                i += 1
+                continue
+            elif string_quote == "`" and ch == "$" and (i + 1) < len(content) and content[i + 1] == "{":
+                template_resume_stack.append(string_quote)
+                pending_template_expr = True
+                string_quote = None
+                i += 1
+                continue
+            elif ch == string_quote:
+                string_quote = None
+                escaped = False
+                i += 1
+                continue
+            else:
+                i += 1
+                continue
+
+        if ch in ('"', "'", "`"):
+            string_quote = ch
+            escaped = False
+            i += 1
+            continue
+
+        if ch == "/" and (i + 1) < len(content):
+            nxt = content[i + 1]
+            if nxt == "/":
+                newline = content.find("\n", i)
+                if newline == -1:
+                    i = len(content)
+                    break
+                i = newline + 1
+                continue
+            if nxt == "*":
+                end = content.find("*/", i + 2)
+                if end == -1:
+                    raise RuntimeError("多行注释未闭合，无法定位 #joinView 区块。")
+                i = end + 2
+                continue
+
+        if ch == "{" :
+            depth += 1
+            if pending_template_expr:
+                template_expr_stack.append(depth)
+                pending_template_expr = False
+            i += 1
+            continue
+
+        if ch == "}":
+            if depth == 0:
+                raise RuntimeError("#joinView 区块括号不匹配。")
+            closed_depth = depth
+            depth -= 1
+            if template_expr_stack and closed_depth == template_expr_stack[-1]:
+                template_expr_stack.pop()
+                if template_resume_stack:
+                    string_quote = template_resume_stack.pop()
+            i += 1
+            if depth == 0:
+                return i
+            continue
+
+        i += 1
+
+    raise RuntimeError("未能定位 #joinView 结束位置。")
+
+
 def patch_join_view(content: str) -> str:
     if "Join theme loader" in content:
         return content
-    match = JOIN_VIEW_PATTERN.search(content)
+    match = JOIN_VIEW_HEADER_PATTERN.search(content)
     if not match:
         raise RuntimeError("未找到 #joinView 定义，无法自动补丁。")
-    return content[:match.start()] + JOIN_VIEW_BLOCK + content[match.end():]
+    block_start = match.start()
+    block_end = _find_block_end(content, match.end() - 1)
+    return content[:block_start] + JOIN_VIEW_BLOCK + content[block_end:]
 
 
 def validate_theme_id(theme_id: str) -> str:
@@ -153,10 +266,8 @@ def validate_theme_id(theme_id: str) -> str:
 
 
 def apply_patches(root: Path, theme_labels: Dict[str, str], script_map: Dict[str, str]):
-    foundry_path = root / "public/scripts/foundry.mjs"
-    constants_path = root / "common/constants.mjs"
-    if not foundry_path.exists() or not constants_path.exists():
-        raise RuntimeError("未找到 foundry.mjs 或 constants.mjs。")
+    foundry_path = find_foundry_file(root)
+    constants_path = find_constants_file(root)
 
     backup(foundry_path)
     backup(constants_path)
@@ -178,8 +289,11 @@ def apply_patches(root: Path, theme_labels: Dict[str, str], script_map: Dict[str
 
 
 def restore_backups(root: Path):
-    for rel in ("public/scripts/foundry.mjs", "common/constants.mjs"):
-        path = root / rel
+    for finder in (find_foundry_file, find_constants_file):
+        try:
+            path = finder(root)
+        except RuntimeError:
+            continue
         backup_path = path.with_suffix(path.suffix + ".backup")
         if backup_path.exists():
             shutil.copy2(backup_path, path)
@@ -232,8 +346,9 @@ def remove_theme_background_video(root: Path, theme_id: str) -> Path:
 
 
 def discover_themes(root: Path) -> Dict[str, str]:
-    foundry_path = root / "public/scripts/foundry.mjs"
-    if not foundry_path.exists():
+    try:
+        foundry_path = find_foundry_file(root)
+    except RuntimeError:
         return {}
     content = foundry_path.read_text(encoding="utf-8")
     match = WORLD_PATTERN.search(content)
@@ -363,10 +478,8 @@ def remove_theme(root: Path, theme_id: str):
     if pub_dir.exists():
         shutil.rmtree(pub_dir)
 
-    foundry_path = root / "public/scripts/foundry.mjs"
-    constants_path = root / "common/constants.mjs"
-    if not foundry_path.exists() or not constants_path.exists():
-        raise RuntimeError("未找到 foundry.mjs 或 constants.mjs。")
+    foundry_path = find_foundry_file(root)
+    constants_path = find_constants_file(root)
 
     for path in (foundry_path, constants_path):
         backup(path)
