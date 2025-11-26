@@ -1,7 +1,7 @@
 # FVTT Join Theme Framework
 
 该仓库提供一个可插拔的 Foundry VTT 世界登陆页主题框架，以及配套的桌面安装器 `installer_app`。目标是让前端工程师或 AI 代理无需触及核心引擎即可开发、预览、分发多套登录主题。
-![PixPin_2025-11-26_23-17-55](https://github.com/user-attachments/assets/51711414-4c0d-4c44-acce-4bac5bc10f3d)
+![PixPin_2025-11-26_23-18-52](https://github.com/user-attachments/assets/7fc86712-42fe-4993-8b23-d0e20f262b3a)
 
 
 ## 功能概览
